@@ -447,63 +447,6 @@ describe('Injector', () => {
         ),
       ).to.eventually.be.eq(null);
     });
-
-    it('should call "loadProvider" when component is not resolved', async () => {
-      const moduleFixture = {
-        imports: new Map([
-          [
-            'key',
-            {
-              providers: {
-                has: () => true,
-                get: () =>
-                  new InstanceWrapper({
-                    isResolved: false,
-                  }),
-              },
-              exports: {
-                has: () => true,
-              },
-              imports: new Map(),
-            },
-          ],
-        ] as any),
-      };
-      await injector.lookupComponentInImports(
-        moduleFixture as any,
-        metatype as any,
-        new InstanceWrapper(),
-      );
-      expect(loadProvider.called).to.be.true;
-    });
-
-    it('should not call "loadProvider" when component is resolved', async () => {
-      const moduleFixture = {
-        relatedModules: new Map([
-          [
-            'key',
-            {
-              providers: {
-                has: () => true,
-                get: () => ({
-                  isResolved: true,
-                }),
-              },
-              exports: {
-                has: () => true,
-              },
-              relatedModules: new Map(),
-            },
-          ],
-        ] as any),
-      };
-      await injector.lookupComponentInImports(
-        moduleFixture as any,
-        metatype as any,
-        null,
-      );
-      expect(loadProvider.called).to.be.false;
-    });
   });
 
   describe('resolveParamToken', () => {
@@ -545,7 +488,7 @@ describe('Injector', () => {
     });
   });
 
-  describe('resolveComponentInstance', () => {
+  describe('resolveComponentHost', () => {
     let module;
     beforeEach(() => {
       module = {
@@ -560,16 +503,8 @@ describe('Injector', () => {
         const loadStub = sinon
           .stub(injector, 'loadProvider')
           .callsFake(() => null);
-        sinon
-          .stub(injector, 'lookupComponent')
-          .returns(Promise.resolve(wrapper));
 
-        await injector.resolveComponentInstance(
-          module,
-          '',
-          { index: 0, dependencies: [] },
-          wrapper,
-        );
+        await injector.resolveComponentHost(module, wrapper);
         expect(loadStub.called).to.be.true;
       });
       it('should not call loadProvider (isResolved)', async () => {
@@ -578,16 +513,7 @@ describe('Injector', () => {
           .stub(injector, 'loadProvider')
           .callsFake(() => null);
 
-        sinon
-          .stub(injector, 'lookupComponent')
-          .returns(Promise.resolve(wrapper));
-
-        await injector.resolveComponentInstance(
-          module,
-          '',
-          { index: 0, dependencies: [] },
-          wrapper,
-        );
+        await injector.resolveComponentHost(module, wrapper);
         expect(loadStub.called).to.be.false;
       });
       it('should not call loadProvider (forwardRef)', async () => {
@@ -599,16 +525,7 @@ describe('Injector', () => {
           .stub(injector, 'loadProvider')
           .callsFake(() => null);
 
-        sinon
-          .stub(injector, 'lookupComponent')
-          .returns(Promise.resolve(wrapper));
-
-        await injector.resolveComponentInstance(
-          module,
-          '',
-          { index: 0, dependencies: [] },
-          wrapper,
-        );
+        await injector.resolveComponentHost(module, wrapper);
         expect(loadStub.called).to.be.false;
       });
     });
@@ -624,16 +541,8 @@ describe('Injector', () => {
           async: true,
           instance,
         });
-        sinon
-          .stub(injector, 'lookupComponent')
-          .returns(Promise.resolve(wrapper));
 
-        const result = await injector.resolveComponentInstance(
-          module,
-          '',
-          { index: 0, dependencies: [] },
-          wrapper,
-        );
+        const result = await injector.resolveComponentHost(module, wrapper);
         expect(result.instance).to.be.true;
       });
     });
